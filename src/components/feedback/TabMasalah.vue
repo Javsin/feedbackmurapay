@@ -41,6 +41,39 @@
             </div>
         </div>
     </div>
+    <div class="background-gray py-2">
+    </div>
+    <div class="container my-2">
+        <div class="row">
+            <div class="col-12">
+                <p class="fw-500 font-small mb-1 text-dark-blue mb-1">Kontak Info</p>
+                <p class="fw-500 text-muted font-small mb-2">Tinggalkan nama, email dan nomor whatsapp yang bisa kami hubungi.</p>
+            </div>
+            <div class="col-12 mb-2">
+                <div class="form-group">
+                    <input type="text" class="form-control font-small" placeholder="Nama" v-model="form.nama">
+                </div>
+            </div>
+            <div class="col-12 mb-2">
+                <div class="form-group">
+                    <input type="email" class="form-control font-small" placeholder="Email" v-model="form.email">
+                </div>
+            </div>
+             <div class="col-12 mb-2">
+                <div class="form-group">
+                    <input type="number" class="form-control font-small" placeholder="Whatsapp" v-model="form.whatsapp">
+                </div>
+            </div>
+            <div class="col-12 my-2">
+                <button class="btn background-dark-blue text-white btn-block font-medium fw-500 w-100" @click="simpanSaran()">KIRIM</button>
+            </div>
+            <div class="col-12">
+                <p class="fw-500 text-muted font-small text-center">
+                    Terimakasih atas laporan yang sobat kirimkan,  <br> kami akan melakukan analisa serta perbaikan terhadap kesalahan yang ditemukan.
+                </p>
+            </div>
+        </div>
+    </div>
 </template>
 <script>
 export default {
