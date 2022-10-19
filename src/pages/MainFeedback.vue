@@ -10,12 +10,20 @@
                 </li>
             </ul>
         </div>
-        <div class="tab-content mb-2 pb-3" id="pills-tabContent-testi" style="height:85vh;overflow-y:scroll">
+        <div class="tab-content mb-2 pb-3 position-relative" id="pills-tabContent-testi" style="height:85vh;overflow-y:scroll">
             <div class="tab-pane fade show active" id="pills-2-testi" role="tabpanel" aria-labelledby="pills-2-tab">
-                <TabSaran :agen = kode_agen />
+                <TabSaran :agen = kode_agen @showtoast="showtoast" />
             </div>
             <div class="tab-pane fade show" id="pills-1-testi" role="tabpanel" aria-labelledby="pills-1-tab">
-                <TabMasalah :agen = kode_agen />
+                <TabMasalah :agen = kode_agen @showtoast="showtoast" />
+            </div>
+            <div class="toast bottom-0 start-50 translate-middle text-white border-0 position-absolute" v-bind:class="color" id="liveToast" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        {{message}}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
             </div>
         </div>
     </div>
@@ -23,6 +31,7 @@
 <script>
 import TabSaran from "../components/feedback/TabSaran.vue";
 import TabMasalah from "../components/feedback/TabMasalah.vue";
+import {Toast} from 'bootstrap';
 export default {
     components: {
         TabSaran,
@@ -31,10 +40,23 @@ export default {
     data() {
         return {
             kode_agen : '',
+            toast : '',
+            color : 'background-orange',
+            message : ''
         }
     },
     mounted() {
+        this.toast = new Toast(document.getElementById('liveToast'));
         this.kode_agen = this.$route.params.kodeagen
     },
+    methods: {
+        showtoast(color,message) {
+            this.color = color;
+            this.message = message;
+            setTimeout(() => {
+                this.toast.show();
+            }, 100);
+        }
+    }
 }
 </script>

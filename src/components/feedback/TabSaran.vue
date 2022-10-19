@@ -46,11 +46,11 @@
             </div>
              <div class="col-12 mb-2">
                 <div class="form-group">
-                    <input type="number" class="form-control font-small" placeholder="Whatsapp" v-model="form.whatsapp">
+                    <input type="number" class="form-control font-small" placeholder="Whatsapp" onkeypress='return event.charCode >= 48 && event.charCode <= 57' v-model="form.whatsapp">
                 </div>
             </div>
             <div class="col-12 my-2">
-                <button class="btn background-dark-blue text-white btn-block font-medium fw-500 w-100" @click="simpanSaran()">KIRIM</button>
+                <button class="btn background-dark-blue text-white btn-block font-medium fw-500 w-100" @click="simpanSaran()" :disabled="disable" >KIRIM</button>
             </div>
             <div class="col-12">
                 <p class="fw-500 text-muted font-small text-center">
@@ -61,36 +61,18 @@
     </div>
 </template>
 <script>
+import axios from 'axios'
 export default {
     props: {
         agen: String
     },
+    emits: ['showtoast'],
     data() {
         return {
-            kategori: [
-                {
-                    id: "1",
-                    nama_kategori : "Produk baru"
-                },
-                {
-                    id: "2",
-                    nama_kategori : "Fitur baru"
-                },
-                {
-                    id: "3",
-                    nama_kategori : "Media topup saldo"
-                },
-                {
-                    id: "4",
-                    nama_kategori : "Optimalisasi aplikasi"
-                },
-                {
-                    id: "5",
-                    nama_kategori : "Lainnya"
-                }
-            ],
+            kategori: [],
             active_el: 0,
             count: 0,
+            disable: false,
             form: {
                 kategori:'',
                 deskripsi:'',
@@ -101,6 +83,9 @@ export default {
             }
         }
     },
+    created() {
+        this.get_kategori()
+    },
     methods: {
         gantiwarna(posisi){
             this.active_el = posisi
@@ -109,41 +94,59 @@ export default {
         limiter(){
             this.count = this.form.deskripsi.length
         },
-        simpanSaran(){
-            const params = {
-                'nama': this.form.nama,
-                'email': this.form.email,
-                'kategori' : this.form.kategori,
-                'kode_agen' : this.agen,
-                'deskripsi' : this.form.deskripsi,   
-                'whatsapp' : this.form.whatsapp             
+        async simpanSaran(){
+            try{
+                this.disable = true
+                const senData = {
+                    'wtinkouridol': this.$route.params.token,
+                    'nama': this.form.nama,
+                    'email': this.form.email,
+                    'kategori' : this.form.kategori,
+                    'kode_agen' : this.agen,
+                    'deskripsi' : this.form.deskripsi,   
+                    'nomor_fu' : this.form.whatsapp             
+                }
+                let url = 'http://192.168.5.12:3000/api/external/saveSaran'
+                const response = await axios.post(url, JSON.stringify(senData),{
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+                if(response.data.status == '200'){
+                    this.$emit('showtoast', 'background-orange', 'Saran berhasil dikirim')
+                    setTimeout(function(){
+                        this.disable = false
+                        window.location.replace("com.app.murapay://home");
+                    }, 5000);
+                }else{
+                    this.disable = false
+                    this.$emit('showtoast', 'bg-danger', response.data.message)
+                }
+            }catch(error){
+                this.disable = false
+                this.$emit('showtoast', 'bg-danger', error)
             }
-            console.log(params)
-            // axios.post('/api/save-saran',params).then(res => {
-            //     if(res.data=='success'){
-            //         this.$bvToast.toast('Terima kasih atas waktu dan keinginan Sobat dalam memberi masukan kepada Kami', {
-            //             title: 'Data berhasil di kirim',
-            //             variant: 'success',
-            //             solid: true,
-            //             toaster: 'b-toaster-top-full',
-            //             appendToast: false,
-            //         })
-            //         setTimeout(function(){
-            //             window.location.replace("com.unitedtronik://home");
-            //         }, 5000);
-            //     }else if(res.data=='fail'){
-            //         this.$bvToast.toast('Mohon periksa kembali data anda', {
-            //             title: 'Data gagal di kirim',
-            //             variant: 'danger',
-            //             solid: true,
-            //             toaster: 'b-toaster-top-full',
-            //             appendToast: false,
-            //         })
-            //     }
-            // }).catch((err) => {
-            //     console.log(err);
-            // })
         },
+        async get_kategori(){
+            try{
+                const sendData = {
+                    wtinkouridol: this.$route.params.token,
+                };
+                let url = 'http://192.168.5.12:3000/api/external/kategori_feedback'
+                const response = await axios.post(url, JSON.stringify(sendData), {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+                if(response.data.status == '200'){
+                    this.kategori = response.data.response
+                }else{
+                    this.$emit('showtoast', 'bg-danger', response.data.message)
+                }
+            }catch(error){
+                this.$emit('showtoast', 'bg-danger', error)
+            }
+        }
     }
 }
 </script>

@@ -14,7 +14,6 @@
                 kami untuk memperbaikinya lebih cepat.</p>
             </div>
             <div class="col-12">
-                <p class="text-muted font-small mb-1 pt-2">Deskripsi saran yang ingin disampaikan</p>
                 <div class="wrap-deskripsi" style="position:relative;">
                     <textarea id="textarea" autocomplete="off" spellcheck="false" wrap="soft" maxlength="1000" rows="5" max-rows="6" class="form-control font-small border-dark-blue" v-model="form.deskripsi" @keyup="limiter()"></textarea>
                     <div class="counter text-muted font-small" style="position:absolute;bottom:0;right:0;padding:0 5px 2px 0;"><span class="count">{{ count }}</span> / 1000</div>
@@ -26,10 +25,15 @@
             <div class="col-12 mt-2">
                 <div class="d-flex">
                     <div v-for="(item,index) in data_image" :key="index" class="rounded border-dark-blue p-1 d-flex justify-content-center me-2 position-relative">
-                        <img :src="item.url" style="height: 43px; width: 43px; object-fit: contain;">
-                        <button class="remove-image d-flex justify-content-center" @click="removeImage(index)">
-                            <svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="times" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 352 512" class="align-self-center" style="width:14;height:14;"><path fill="currentColor" d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z" class=""></path></svg>
-                        </button>
+                        <div v-if="item.show == true">
+                            <img :src="item.url" style="height: 43px; width: 43px; object-fit: contain;">
+                            <button class="remove-image d-flex justify-content-center" @click="removeImage(index)">
+                                <svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="times" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 352 512" class="align-self-center" style="width:14;height:14;"><path fill="currentColor" d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z" class=""></path></svg>
+                            </button>
+                        </div>
+                        <div v-else>
+                           <div class="loader"></div>
+                        </div>
                     </div>
                     <div v-if="show_upload" class="rounded border-dark-blue p-1 d-flex justify-content-center" style="width:52px;height:52px;position-relative" @click="$refs.fileimage.click()">
                         <input ref="fileimage" type="file" accept="image/x-png,image/gif,image/jpeg" @change="onFileChange($event)" hidden>
@@ -61,25 +65,27 @@
             </div>
              <div class="col-12 mb-2">
                 <div class="form-group">
-                    <input type="number" class="form-control font-small" placeholder="Whatsapp" v-model="form.whatsapp">
+                    <input type="text" inputmode="numeric" onkeypress='return event.charCode >= 48 && event.charCode <= 57' class="form-control font-small" placeholder="Whatsapp" v-model="form.whatsapp">
                 </div>
             </div>
             <div class="col-12 my-2">
-                <button class="btn background-dark-blue text-white btn-block font-medium fw-500 w-100" @click="simpanSaran()">KIRIM</button>
+                <button class="btn background-dark-blue text-white btn-block font-medium fw-500 w-100" @click="simpanSaran()" :disabled="disable">KIRIM</button>
             </div>
             <div class="col-12">
                 <p class="fw-500 text-muted font-small text-center">
-                    Terimakasih atas laporan yang sobat kirimkan,  <br> kami akan melakukan analisa serta perbaikan terhadap kesalahan yang ditemukan.
+                    Terimakasih atas laporan yang sudah di kirimkan  <br> Kami akan melakukan analisa serta perbaikan terhadap kesalahan yang ditemukan.
                 </p>
             </div>
         </div>
     </div>
 </template>
 <script>
+import axios from 'axios';
 export default {
     props: {
         agen: String
     },
+    emits: ['showtoast'],
     data(){ 
         return {
             show_upload : true,
@@ -89,6 +95,7 @@ export default {
                 email: "",
                 whatsapp: ""
             },
+            disable : false,
             data_image : [],
             count: 0
         }
@@ -97,32 +104,90 @@ export default {
         limiter() {
             this.count = this.form.deskripsi.length;
         },
-        simpanSaran() {
-            console.log(this.form);
+        async simpanSaran() {
+            try {
+                this.disable = true
+                const senData = {
+                'wtinkouridol': this.$route.params.token,
+                'nama': this.form.nama,
+                'email': this.form.email,
+                'kategori' : this.form.kategori,
+                'kode_agen' : this.agen,
+                'deskripsi' : this.form.deskripsi,   
+                'nomor_fu' : this.form.whatsapp,
+                'foto': this.data_image.map(item => item.url)             
+                }
+                let url = 'http://192.168.5.12:3000/api/external/saveFeedback'
+                const response = await axios.post(url, JSON.stringify(senData),{
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+                if(response.data.status == '200'){
+                    this.$emit('showtoast', 'background-orange', 'Saran berhasil dikirim')
+                    setTimeout(function(){
+                        this.disable = false
+                        window.location.replace("com.app.murapay://home");
+                    }, 5000);
+                }else{
+                    this.disable = false
+                    this.$emit('showtoast', 'bg-danger', response.data.message)
+                }   
+            } catch (error) {
+                this.disable = false
+                this.$emit('showtoast', 'bg-danger', error.message)
+            }
         },
-        onFileChange(e) {
+        async onFileChange(e) {
             let files = e.target.files || e.dataTransfer.files;
             if (!files.length)
             return;
             let x = {
-                file: e.target.files[0],
-                url: URL.createObjectURL(e.target.files[0]),
-                base64 : ""
+                show : false,
+                url : ""
             }
             let newfile = files[0];
-            let filereader = new FileReader();
-            filereader.readAsDataURL(newfile);
-            filereader.onload = function (evt) {
-                let base64 = evt.target.result;
-                this.data_image = base64;
-                x.base64 = base64;
-            }
+            let base = await this.base64_image(newfile);
+            base = base.replace(/^data:image\/[a-z]+;base64,/, "");
+            let count = this.data_image.length;
             this.data_image.push(x);
+            let d = new Date();
+            let filename = `${this.agen}_${d.getTime()}_${newfile.name}`
+            await this.upload(base, count, filename);
             this.$refs.fileimage.value = '';
             if(this.data_image.length == 4) {
                 this.show_upload = false;
             }
         },
+        async base64_image(file){
+            return new Promise((resolve, reject) => {
+                let reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => {
+                    resolve(reader.result);
+                };
+                reader.onerror = error => reject(error);
+            });
+        },
+        removeImage(index){
+            this.data_image.splice(index, 1);
+            this.show_upload = true;
+        },
+        async upload(base64,count,filename) {
+            let formdata = new FormData();
+            formdata.append("image", base64);
+            formdata.append("filename", filename);
+            await axios.post("https://murapay.id/app/addon/uploadfeed.php", formdata, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            }).then(res => {
+                this.data_image[count].show = true;
+                this.data_image[count].url = res.data.url;
+            }).catch(err => {
+                this.$emit('showtoast', 'bg-danger', err.message);
+            })
+        }
     }
 }
 </script>
