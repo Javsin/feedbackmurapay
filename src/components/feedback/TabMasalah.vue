@@ -117,7 +117,7 @@ export default {
                 'nomor_fu' : this.form.whatsapp,
                 'foto': this.data_image.map(item => item.url)             
                 }
-                let url = 'http://192.168.5.12:3000/api/external/saveFeedback'
+                let url = 'https://api.murapay.id:5743/api/external/saveFeedback'
                 const response = await axios.post(url, JSON.stringify(senData),{
                     headers: {
                         "Content-Type": "application/json",

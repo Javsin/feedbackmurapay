@@ -106,7 +106,7 @@ export default {
                     'deskripsi' : this.form.deskripsi,   
                     'nomor_fu' : this.form.whatsapp             
                 }
-                let url = 'http://192.168.5.12:3000/api/external/saveSaran'
+                let url = 'https://api.murapay.id:5743/api/external/saveSaran'
                 const response = await axios.post(url, JSON.stringify(senData),{
                     headers: {
                         "Content-Type": "application/json",
@@ -132,7 +132,7 @@ export default {
                 const sendData = {
                     wtinkouridol: this.$route.params.token,
                 };
-                let url = 'http://192.168.5.12:3000/api/external/kategori_feedback'
+                let url = 'https://api.murapay.id:5743/api/external/kategori_feedback'
                 const response = await axios.post(url, JSON.stringify(sendData), {
                     headers: {
                         "Content-Type": "application/json",
