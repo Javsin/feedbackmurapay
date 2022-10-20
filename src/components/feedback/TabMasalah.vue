@@ -124,7 +124,7 @@ export default {
                     },
                 });
                 if(response.data.status == '200'){
-                    this.$emit('showtoast', 'background-orange', 'Saran berhasil dikirim')
+                    this.$emit('showtoast', 'background-orange', 'Laporan Kesalahan tak terduga(Bug) berhasil dikirim')
                     setTimeout(function(){
                         this.disable = false
                         window.location.replace("com.app.murapay://home");
